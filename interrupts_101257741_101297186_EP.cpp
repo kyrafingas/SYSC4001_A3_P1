@@ -5,7 +5,7 @@
  * 
  */
 
-#include<interrupts_student1_student2.hpp>
+#include"interrupts_101257741_101297186.hpp"
 
 void FCFS(std::vector<PCB> &ready_queue) {
     std::sort( 
@@ -13,6 +13,16 @@ void FCFS(std::vector<PCB> &ready_queue) {
                 ready_queue.end(),
                 []( const PCB &first, const PCB &second ){
                     return (first.arrival_time > second.arrival_time); 
+                } 
+            );
+}
+
+void EP(std::vector<PCB> &ready_queue){
+    std::sort( 
+                ready_queue.begin(),
+                ready_queue.end(),
+                []( const PCB &first, const PCB &second ){
+                    return (first.priority > second.priority); 
                 } 
             );
 }
@@ -63,11 +73,19 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
         ///////////////////////MANAGE WAIT QUEUE/////////////////////////
         //This mainly involves keeping track of how long a process must remain in the ready queue
-
+        int cnt = 0;
+        for(auto &wait : wait_queue){
+            if(wait.io_duration <= (current_time - wait.start_time)){
+                wait.state = READY;
+                ready_queue.push_back(wait); //Add the process to the ready queue
+                wait_queue.erase(wait_queue.begin()+cnt);
+            }
+            cnt++;
+        }
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-        FCFS(ready_queue); //example of FCFS is shown here
+        EP(ready_queue); 
         /////////////////////////////////////////////////////////////////
 
     }

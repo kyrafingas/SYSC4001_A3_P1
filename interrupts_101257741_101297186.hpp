@@ -56,6 +56,7 @@ struct memory_partition{
 
 struct PCB{
     int             PID;
+    int             priority;
     unsigned int    size;
     unsigned int    arrival_time;
     int             start_time;
