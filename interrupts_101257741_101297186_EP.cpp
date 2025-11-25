@@ -1,7 +1,7 @@
 /**
  * @file interrupts.cpp
- * @author Sasisekhar Govind
- * @brief template main.cpp file for Assignment 3 Part 1 of SYSC4001
+ * @author Kyra Fingas
+ * @brief main.cpp file for Assignment 3 Part 1 of SYSC4001
  * 
  */
 
@@ -18,6 +18,7 @@ void FCFS(std::vector<PCB> &ready_queue) {
 }
 
 void EP(std::vector<PCB> &ready_queue){
+    std::printf("in EP");
     std::sort( 
                 ready_queue.begin(),
                 ready_queue.end(),
@@ -25,6 +26,7 @@ void EP(std::vector<PCB> &ready_queue){
                     return (first.priority > second.priority); 
                 } 
             );
+    std::printf("sorted EP");
 }
 
 std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std::vector<PCB> list_processes) {
@@ -75,17 +77,43 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         //This mainly involves keeping track of how long a process must remain in the ready queue
         int cnt = 0;
         for(auto &wait : wait_queue){
-            if(wait.io_duration <= (current_time - wait.start_time)){
+            std::printf("in for loop");
+            if(wait.io_duration <= ((current_time - wait.start_time) % wait.io_freq)){
+                execution_status += print_exec_status(current_time, wait.PID, WAITING, READY);
                 wait.state = READY;
                 ready_queue.push_back(wait); //Add the process to the ready queue
                 wait_queue.erase(wait_queue.begin()+cnt);
             }
             cnt++;
         }
+        std::printf("after for loop");
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-        EP(ready_queue); 
+        if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
+            EP(ready_queue); 
+    
+            if(running.state == NOT_ASSIGNED){//if it's currently idling
+                running = ready_queue.back();//grab first thing off of ready queue
+                run_process(running, job_list, ready_queue, current_time);//run it
+                execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);
+            }
+        
+            running.remaining_time--;//one off of remaining time
+            if(running.remaining_time == 0){//if it's done running
+                execution_status += print_exec_status(current_time, running.PID, RUNNING, TERMINATED);
+                terminate_process(running, job_list);//terminate
+                idle_CPU(running);//idle CPU
+            } else if(running.remaining_time % running.io_freq == 0){//if it's ready to i/o, place in waiting queue
+                running.state = WAITING;
+                wait_queue.push_back(running);//stick on waiting queue
+                execution_status += print_exec_status(current_time, running.PID, RUNNING, WAITING);
+                idle_CPU(running);//idle CPU
+            }
+        }
+        
+        current_time++;//increment time, doing 1 loop per 1 time unit
+    
         /////////////////////////////////////////////////////////////////
 
     }
