@@ -87,7 +87,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
         //////////////////////////SCHEDULER//////////////////////////////
         if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
-            //working?
+            
             EP(ready_queue); 
     
             if(running.state == NOT_ASSIGNED){//if it's currently idling

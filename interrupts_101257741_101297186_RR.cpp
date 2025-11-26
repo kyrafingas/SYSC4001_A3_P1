@@ -63,11 +63,51 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
         ///////////////////////MANAGE WAIT QUEUE/////////////////////////
         //This mainly involves keeping track of how long a process must remain in the ready queue
-
+        int cnt = 0;
+        for(auto &wait : wait_queue){
+            if(wait.io_duration <= ((current_time - wait.start_time) % wait.io_freq)){
+                execution_status += print_exec_status(current_time, wait.PID, WAITING, READY);
+                wait.state = READY;
+                ready_queue.insert ( ready_queue.begin() , wait ); //Add the process to the ready queue
+                wait_queue.erase(wait_queue.begin()+cnt);
+            }
+            cnt++;
+        }
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-        FCFS(ready_queue); //example of FCFS is shown here
+
+        if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
+    
+            if(running.state == NOT_ASSIGNED){//if it's currently idling
+                running = ready_queue.back();//grab first thing off of ready queue
+                run_process(running, job_list, ready_queue, current_time);//run it
+                execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);
+            }
+        
+            running.remaining_time--;//one off of remaining time
+            if(running.remaining_time == 0){//if it's done running
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, TERMINATED);
+                terminate_process(running, job_list);//terminate
+                idle_CPU(running);//idle CPU
+            } else if(((running.processing_time-running.remaining_time) % running.io_freq) == 0){//if it's ready to i/o, place in waiting queue
+                running.state = WAITING;
+                wait_queue.push_back(running);//stick on waiting queue
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
+                idle_CPU(running);//idle CPU
+            } else if(current_time - running.start_time >= 100){//timeout
+                execution_status += print_exec_status(current_time, running.PID, RUNNING, READY);
+                running.state = READY;
+                if(!ready_queue.empty()){
+                    ready_queue.insert ( ready_queue.begin() , running ); //Add the process to the ready queue
+                } else {
+                    ready_queue.push_back(running);
+                }
+                idle_CPU(running);//idle CPU
+            }
+        }
+        
+        current_time++;//increment time, doing 1 loop per 1 time unit
         /////////////////////////////////////////////////////////////////
 
     }
