@@ -54,7 +54,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 assign_memory(process);
 
                 process.state = READY;  //Set the process state to READY
-                ready_queue.push_back(process); //Add the process to the ready queue
+                ready_queue.insert ( ready_queue.begin() , process ); //Add the process to the ready queue
                 job_list.push_back(process); //Add it to the list of processes
 
                 execution_status += print_exec_status(current_time, process.PID, NEW, READY);
@@ -95,8 +95,8 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 wait_queue.push_back(running);//stick on waiting queue
                 execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
                 idle_CPU(running);//idle CPU
-            } else if(current_time - running.start_time >= 100){//timeout
-                execution_status += print_exec_status(current_time, running.PID, RUNNING, READY);
+            } else if(current_time - running.start_time >= 99){//timeout
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, READY);
                 running.state = READY;
                 if(!ready_queue.empty()){
                     ready_queue.insert ( ready_queue.begin() , running ); //Add the process to the ready queue
