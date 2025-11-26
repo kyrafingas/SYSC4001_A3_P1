@@ -17,6 +17,27 @@ void FCFS(std::vector<PCB> &ready_queue) {
             );
 }
 
+void EP(std::vector<PCB> &ready_queue){
+    std::sort( 
+                ready_queue.begin(),
+                ready_queue.end(),
+                []( const PCB &first, const PCB &second ){
+                    return (first.priority > second.priority); 
+                } 
+            );
+}
+
+std::vector<PCB> make_priority_queue(std::vector<PCB> &ready_queue){
+    std::vector<PCB> priority_queue;
+    EP(ready_queue);
+    for(auto pcb : ready_queue){
+        if(pcb.priority == ready_queue.front().priority){
+            priority_queue.push_back(pcb);
+        }
+    }
+    return priority_queue;
+}
+
 std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std::vector<PCB> list_processes) {
 
     std::vector<PCB> ready_queue;   //The ready queue of processes
@@ -54,7 +75,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 assign_memory(process);
 
                 process.state = READY;  //Set the process state to READY
-                ready_queue.push_back(process); //Add the process to the ready queue
+                ready_queue.insert ( ready_queue.begin() , process ); //Add the process to the ready queue
                 job_list.push_back(process); //Add it to the list of processes
 
                 execution_status += print_exec_status(current_time, process.PID, NEW, READY);
@@ -63,11 +84,54 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
         ///////////////////////MANAGE WAIT QUEUE/////////////////////////
         //This mainly involves keeping track of how long a process must remain in the ready queue
-
+        int cnt = 0;
+        for(auto &wait : wait_queue){
+            if(wait.io_duration <= ((current_time - wait.start_time) % wait.io_freq)){
+                execution_status += print_exec_status(current_time, wait.PID, WAITING, READY);
+                wait.state = READY;
+                ready_queue.insert ( ready_queue.begin() , wait ); //Add the process to the ready queue
+                wait_queue.erase(wait_queue.begin()+cnt);
+            }
+            cnt++;
+        }
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-        FCFS(ready_queue); //example of FCFS is shown here
+
+        if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
+            std::vector<PCB> priority_queue = make_priority_queue(ready_queue);
+            if(priority_queue.size()>0){//something with this if statement
+                if(running.state == NOT_ASSIGNED || priority_queue.front().priority != running.priority){//if it's currently idling
+                running = priority_queue.back();//grab first thing off of ready queue
+                run_process(running, job_list, ready_queue, current_time);//run it
+                execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);
+                }
+            
+                running.remaining_time--;//one off of remaining time
+                if(running.remaining_time == 0){//if it's done running
+                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, TERMINATED);
+                    terminate_process(running, job_list);//terminate
+                    idle_CPU(running);//idle CPU
+                } else if(((running.processing_time-running.remaining_time) % running.io_freq) == 0){//if it's ready to i/o, place in waiting queue
+                    running.state = WAITING;
+                    wait_queue.push_back(running);//stick on waiting queue
+                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
+                    idle_CPU(running);//idle CPU
+                } else if(current_time - running.start_time >= 99){//timeout
+                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, READY);
+                    running.state = READY;
+                    if(!ready_queue.empty()){
+                        ready_queue.insert ( ready_queue.begin() , running ); //Add the process to the ready queue
+                    } else {
+                        ready_queue.push_back(running);
+                    }
+                    idle_CPU(running);//idle CPU
+                }
+            }
+            
+        }
+        
+        current_time++;//increment time, doing 1 loop per 1 time unit
         /////////////////////////////////////////////////////////////////
 
     }
