@@ -267,6 +267,7 @@ PCB add_process(std::vector<std::string> tokens) {
     process.remaining_time = std::stoi(tokens[3]);
     process.io_freq = std::stoi(tokens[4]);
     process.io_duration = std::stoi(tokens[5]);
+    process.priority = std::stoi(tokens[6]);
     process.start_time = -1;
     process.partition_number = -1;
     process.state = NOT_ASSIGNED;
