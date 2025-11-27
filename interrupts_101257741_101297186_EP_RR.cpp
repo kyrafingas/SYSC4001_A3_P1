@@ -18,6 +18,7 @@ void FCFS(std::vector<PCB> &ready_queue) {
 }
 
 void EP(std::vector<PCB> &ready_queue){
+    //std::cout<<"sorting\n";
     std::sort( 
                 ready_queue.begin(),
                 ready_queue.end(),
@@ -30,10 +31,16 @@ void EP(std::vector<PCB> &ready_queue){
 std::vector<PCB> make_priority_queue(std::vector<PCB> &ready_queue){
     std::vector<PCB> priority_queue;
     EP(ready_queue);
+    //std::cout<< std::to_string(ready_queue.front().priority);
     for(auto pcb : ready_queue){
-        if(pcb.priority == ready_queue.front().priority){
-            priority_queue.push_back(pcb);
+        if(pcb.priority == ready_queue.back().priority){
+            priority_queue.insert(priority_queue.end(), pcb);
         }
+    }
+    if(priority_queue.empty()){
+        PCB pcb;
+        idle_CPU(pcb);
+        priority_queue.push_back(pcb);
     }
     return priority_queue;
 }
@@ -77,7 +84,6 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 process.state = READY;  //Set the process state to READY
                 ready_queue.insert ( ready_queue.begin() , process ); //Add the process to the ready queue
                 job_list.push_back(process); //Add it to the list of processes
-
                 execution_status += print_exec_status(current_time, process.PID, NEW, READY);
             }
         }
@@ -97,36 +103,42 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-
         if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
             std::vector<PCB> priority_queue = make_priority_queue(ready_queue);
-            if(priority_queue.size()>0){//something with this if statement
-                if(running.state == NOT_ASSIGNED || priority_queue.front().priority != running.priority){//if it's currently idling
+            if(running.state == NOT_ASSIGNED){//if it's currently idling or if it's exempted
+                if(priority_queue.back().priority != 100){
+                    running = priority_queue.back();//grab first thing off of ready queue
+                    run_process(running, job_list, ready_queue, current_time);//run it
+                    execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);   
+                }
+            } else if (priority_queue.front().priority < running.priority){
+                execution_status += print_exec_status(current_time, running.PID, RUNNING, READY);
+                running.state = READY;
+                ready_queue.insert ( ready_queue.begin() , running );
                 running = priority_queue.back();//grab first thing off of ready queue
                 run_process(running, job_list, ready_queue, current_time);//run it
-                execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);
-                }
+                execution_status += print_exec_status(current_time, running.PID, READY, RUNNING); 
+            }
             
-                running.remaining_time--;//one off of remaining time
-                if(running.remaining_time == 0){//if it's done running
-                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, TERMINATED);
-                    terminate_process(running, job_list);//terminate
-                    idle_CPU(running);//idle CPU
-                } else if(((running.processing_time-running.remaining_time) % running.io_freq) == 0){//if it's ready to i/o, place in waiting queue
-                    running.state = WAITING;
-                    wait_queue.push_back(running);//stick on waiting queue
-                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
-                    idle_CPU(running);//idle CPU
-                } else if(current_time - running.start_time >= 99){//timeout
-                    execution_status += print_exec_status(current_time+1, running.PID, RUNNING, READY);
-                    running.state = READY;
-                    if(!ready_queue.empty()){
-                        ready_queue.insert ( ready_queue.begin() , running ); //Add the process to the ready queue
-                    } else {
-                        ready_queue.push_back(running);
-                    }
-                    idle_CPU(running);//idle CPU
+            running.remaining_time--;//one off of remaining time
+            if(running.remaining_time == 0){//if it's done running
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, TERMINATED);
+                terminate_process(running, job_list);//terminate
+                idle_CPU(running);//idle CPU
+            } else if(((running.processing_time-running.remaining_time) % running.io_freq) == 0){//if it's ready to i/o, place in waiting queue
+                running.state = WAITING;
+                wait_queue.push_back(running);//stick on waiting queue
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
+                idle_CPU(running);//idle CPU
+            } else if(current_time - running.start_time >= 99){//timeout
+                execution_status += print_exec_status(current_time+1, running.PID, RUNNING, READY);
+                running.state = READY;
+                if(!ready_queue.empty()){
+                    ready_queue.insert ( ready_queue.begin() , running ); //Add the process to the ready queue
+                } else {
+                    ready_queue.push_back(running);
                 }
+                idle_CPU(running);//idle CPU
             }
             
         }
