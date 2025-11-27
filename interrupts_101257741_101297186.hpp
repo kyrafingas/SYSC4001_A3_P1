@@ -315,6 +315,7 @@ void idle_CPU(PCB &running) {
     running.size = 0;
     running.state = NOT_ASSIGNED;
     running.PID = -1;
+    running.priority = 100;
 }
 
 #endif
