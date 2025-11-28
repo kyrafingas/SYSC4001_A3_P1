@@ -56,7 +56,6 @@ struct memory_partition{
 
 struct PCB{
     int             PID;
-    int             priority;
     unsigned int    size;
     unsigned int    arrival_time;
     int             start_time;
@@ -267,7 +266,6 @@ PCB add_process(std::vector<std::string> tokens) {
     process.remaining_time = std::stoi(tokens[3]);
     process.io_freq = std::stoi(tokens[4]);
     process.io_duration = std::stoi(tokens[5]);
-    process.priority = std::stoi(tokens[6]);
     process.start_time = -1;
     process.partition_number = -1;
     process.state = NOT_ASSIGNED;
@@ -315,7 +313,6 @@ void idle_CPU(PCB &running) {
     running.size = 0;
     running.state = NOT_ASSIGNED;
     running.PID = -1;
-    running.priority = 100;
 }
 
 #endif

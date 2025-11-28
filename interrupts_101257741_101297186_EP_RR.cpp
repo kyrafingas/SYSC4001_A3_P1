@@ -23,7 +23,7 @@ void EP(std::vector<PCB> &ready_queue){
                 ready_queue.begin(),
                 ready_queue.end(),
                 []( const PCB &first, const PCB &second ){
-                    return (first.priority > second.priority); 
+                    return (first.PID > second.PID); 
                 } 
             );
 }
@@ -33,7 +33,7 @@ std::vector<PCB> make_priority_queue(std::vector<PCB> &ready_queue){
     EP(ready_queue);
     //std::cout<< std::to_string(ready_queue.front().priority);
     for(auto pcb : ready_queue){
-        if(pcb.priority == ready_queue.back().priority){
+        if(pcb.PID == ready_queue.back().PID){
             priority_queue.insert(priority_queue.end(), pcb);
         }
     }
@@ -106,12 +106,12 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         if(ready_queue.size()>0||running.state != NOT_ASSIGNED){
             std::vector<PCB> priority_queue = make_priority_queue(ready_queue);
             if(running.state == NOT_ASSIGNED){//if it's currently idling or if it's exempted
-                if(priority_queue.back().priority != 100){
+                if(priority_queue.back().PID != -1){
                     running = priority_queue.back();//grab first thing off of ready queue
                     run_process(running, job_list, ready_queue, current_time);//run it
                     execution_status += print_exec_status(current_time, running.PID, READY, RUNNING);   
                 }
-            } else if (priority_queue.front().priority < running.priority){
+            } else if (priority_queue.front().PID < running.PID && priority_queue.front().PID != -1){
                 execution_status += print_exec_status(current_time, running.PID, RUNNING, READY);
                 running.state = READY;
                 ready_queue.insert ( ready_queue.begin() , running );
