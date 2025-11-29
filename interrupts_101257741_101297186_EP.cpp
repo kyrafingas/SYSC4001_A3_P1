@@ -101,7 +101,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 execution_status += print_exec_status(current_time+1, running.PID, RUNNING, TERMINATED);
                 terminate_process(running, job_list);//terminate
                 idle_CPU(running);//idle CPU
-            } else if(((running.processing_time-running.remaining_time) % running.io_freq) == 0){//if it's ready to i/o, place in waiting queue
+            } else if((running.io_freq != 0) &&(((running.processing_time-running.remaining_time) % running.io_freq) == 0)){//if it's ready to i/o, place in waiting queue
                 running.state = WAITING;
                 wait_queue.push_back(running);//stick on waiting queue
                 execution_status += print_exec_status(current_time+1, running.PID, RUNNING, WAITING);
