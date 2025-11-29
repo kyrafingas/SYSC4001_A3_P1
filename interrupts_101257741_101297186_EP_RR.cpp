@@ -92,7 +92,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         //This mainly involves keeping track of how long a process must remain in the ready queue
         int cnt = 0;
         for(auto &wait : wait_queue){
-            if(wait.io_duration <= ((current_time - wait.start_time) % wait.io_freq)){
+            if(wait.io_duration + wait.io_freq <= (current_time - wait.start_time)){
                 execution_status += print_exec_status(current_time, wait.PID, WAITING, READY);
                 wait.state = READY;
                 ready_queue.insert ( ready_queue.begin() , wait ); //Add the process to the ready queue
