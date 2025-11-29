@@ -14,14 +14,14 @@
 |                10 | 10 |   RUNNING |   WAITING |
 |                10 |  4 |   WAITING |     READY |
 |                10 |  4 |     READY |   RUNNING |
-|                11 | 10 |   WAITING |     READY |
 |                12 |  4 |   RUNNING |TERMINATED |
-|                12 | 10 |     READY |   RUNNING |
-|                16 | 10 |   RUNNING |   WAITING |
-|                19 | 10 |   WAITING |     READY |
-|                19 | 10 |     READY |   RUNNING |
-|                23 | 10 |   RUNNING |   WAITING |
-|                26 | 10 |   WAITING |     READY |
-|                26 | 10 |     READY |   RUNNING |
-|                28 | 10 |   RUNNING |TERMINATED |
+|                15 | 10 |   WAITING |     READY |
+|                15 | 10 |     READY |   RUNNING |
+|                19 | 10 |   RUNNING |   WAITING |
+|                22 | 10 |   WAITING |     READY |
+|                22 | 10 |     READY |   RUNNING |
+|                26 | 10 |   RUNNING |   WAITING |
+|                29 | 10 |   WAITING |     READY |
+|                29 | 10 |     READY |   RUNNING |
+|                31 | 10 |   RUNNING |TERMINATED |
 +------------------------------------------------+

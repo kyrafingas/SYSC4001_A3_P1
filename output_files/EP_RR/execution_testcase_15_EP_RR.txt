@@ -15,10 +15,10 @@
 |                19 |  3 |   RUNNING |TERMINATED |
 |                19 | 15 |     READY |   RUNNING |
 |                20 | 15 |   RUNNING |   WAITING |
-|                21 | 15 |   WAITING |     READY |
-|                21 | 15 |     READY |   RUNNING |
-|                25 | 15 |   RUNNING |   WAITING |
-|                27 | 15 |   WAITING |     READY |
-|                27 | 15 |     READY |   RUNNING |
-|                31 | 15 |   RUNNING |TERMINATED |
+|                25 | 15 |   WAITING |     READY |
+|                25 | 15 |     READY |   RUNNING |
+|                29 | 15 |   RUNNING |   WAITING |
+|                31 | 15 |   WAITING |     READY |
+|                31 | 15 |     READY |   RUNNING |
+|                35 | 15 |   RUNNING |TERMINATED |
 +------------------------------------------------+
