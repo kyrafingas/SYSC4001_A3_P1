@@ -171,6 +171,65 @@ std::string print_exec_header() {
 
 }
 
+//refactor exec header for memory management output table - header
+std::string print_memory_header() {
+
+    const int tableWidth = 118;  
+
+    std::stringstream buffer;
+    
+    // Print top border
+    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
+    
+    // Print headers
+    buffer  << "|"
+            << std::setfill(' ') << std::setw(17) << "Total Memory Used"
+            << std::setw(2) << "|"
+            << std::setfill(' ') << std::setw(56) << "Partition Status"  // Increased from 16
+            << std::setw(2) << "|"
+            << std::setfill(' ') << std::setw(17) << "Total Free Memory"
+            << std::setw(2) << "|"
+            << std::setfill(' ') << std::setw(19) << "Total Usable Memory"
+            << std::setw(2) << "|" << std::endl;
+    
+    // Print separator
+    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
+
+    return buffer.str();
+
+}
+
+//refactor exec header for memory management output table - content
+std::string print_memory_status(unsigned int total_memory_used, std::string partition_status, unsigned int total_free_memory, unsigned int total_usable_memory) {
+
+    const int tableWidth = 118;  
+
+    std::stringstream buffer;
+
+    buffer  << "|"
+            << std::setfill(' ') << std::setw(17) << total_memory_used
+            << std::setw(2) << "|"
+            << std::setw(56) << partition_status  
+            << std::setw(2) << "|"
+            << std::setw(17) << total_free_memory
+            << std::setw(2) << "|"
+            << std::setw(19) << total_usable_memory
+            << std::setw(2) << "|" << std::endl;
+
+    return buffer.str();
+}
+
+//refactor exec header for memory management output table - footer
+std::string print_memory_footer() {
+    const int tableWidth = 118;
+    std::stringstream buffer;
+
+    // Print bottom border
+    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
+
+    return buffer.str();
+}
+
 std::string print_exec_status(unsigned int current_time, int PID, states old_state, states new_state) {
 
     const int tableWidth = 49;

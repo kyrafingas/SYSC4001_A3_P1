@@ -1,11 +1,26 @@
 /**
  * @file interrupts.cpp
- * @author Kyra Fingas
+ * @author Kyra Fingas and Saan John
  * @brief main.cpp file for Assignment 3 Part 1 of SYSC4001
  * 
  */
 
 #include"interrupts_101257741_101297186.hpp"
+
+// Helper function to generate partition status string
+std::string get_partition_status() {
+    std::string partition_status = "";
+    for(int i = 0; i < 6; i++) {
+        partition_status += std::to_string(memory_paritions[i].partition_number) + ":";
+        if(memory_paritions[i].occupied == -1) {
+            partition_status += "free";
+        } else {
+            partition_status += "P" + std::to_string(memory_paritions[i].occupied);
+        }
+        if(i < 5) partition_status += ", ";
+    }
+    return partition_status;
+}
 
 void FCFS(std::vector<PCB> &ready_queue) {
     std::sort( 
@@ -27,7 +42,24 @@ void EP(std::vector<PCB> &ready_queue){
             );
 }
 
-std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std::vector<PCB> list_processes) {
+// Helper function to calculate memory statistics
+void calculate_memory_stats(unsigned int &total_memory_used, unsigned int &total_memory_free, unsigned int &total_memory_usable) {
+    total_memory_used = 0;
+    total_memory_free = 0;
+    total_memory_usable = 0;
+    
+    for(int i = 0; i < 6; i++) {
+        total_memory_usable += memory_paritions[i].size; // Sum of ALL partition sizes
+        
+        if(memory_paritions[i].occupied != -1) {
+            total_memory_used += memory_paritions[i].size;
+        } else {
+            total_memory_free += memory_paritions[i].size; // Sum of free partition sizes only
+        }
+    }
+}
+
+std::tuple<std::string, std::string /* add std::string for bonus mark */ > run_simulation(std::vector<PCB> list_processes) {
 
     std::vector<PCB> ready_queue;   //The ready queue of processes
     std::vector<PCB> wait_queue;    //The wait queue of processes
@@ -38,14 +70,21 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
     unsigned int current_time = 0;
     PCB running;
+    //variables for memory management
+    unsigned int total_memory_used;
+    unsigned int total_memory_free;
+    unsigned int total_memory_usable;
+   
 
     //Initialize an empty running process
     idle_CPU(running);
 
     std::string execution_status;
+    std::string memory_status;
 
     //make the output table (the header row)
     execution_status = print_exec_header();
+    memory_status = print_memory_header();
 
     //Loop while till there are no ready or waiting processes.
     //This is the main reason I have job_list, you don't have to use it.
@@ -61,13 +100,21 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         for(auto &process : list_processes) {
             if(process.arrival_time == current_time) {//check if the AT = current time
                 //if so, assign memory and put the process into the ready queue
-                assign_memory(process);
+                if (assign_memory(process)){
 
                 process.state = READY;  //Set the process state to READY
                 ready_queue.push_back(process); //Add the process to the ready queue
                 job_list.push_back(process); //Add it to the list of processes
 
                 execution_status += print_exec_status(current_time, process.PID, NEW, READY);
+                
+                // Record memory status when process starts
+                calculate_memory_stats(total_memory_used, total_memory_free, total_memory_usable);
+                memory_status += print_memory_status(total_memory_used, get_partition_status(), total_memory_free, total_memory_usable);
+                }
+                else{
+                    printf("ERROR: Not enough memory for program %d\n", process.PID);
+                }
             }
         }
 
@@ -117,8 +164,9 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
     
     //Close the output table
     execution_status += print_exec_footer();
+    memory_status += print_memory_footer(); 
 
-    return std::make_tuple(execution_status);
+    return std::make_tuple(execution_status, memory_status);
 }
 
 
@@ -154,9 +202,10 @@ int main(int argc, char** argv) {
     input_file.close();
 
     //With the list of processes, run the simulation
-    auto [exec] = run_simulation(list_process);
+    auto [exec, mem] = run_simulation(list_process);
 
     write_output(exec, "execution");
+    write_output(mem, "memory");
 
     return 0;
 }
